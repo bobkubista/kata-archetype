@@ -20,7 +20,6 @@
       <directory></directory>
       <includes>
         <include>Jenkinsfile</include>
-        <include>README.md</include>
         <include>.gitignore</include>
       </includes>
     </fileSet>
