@@ -5,6 +5,11 @@ pipeline {
         jdk '1.11' 
     }
     stages { 
+	stage('Update Dependencies') {
+	    steps {
+		sh 'mvn versions:use-latest-verions processParent=true'
+            }
+    	}
         stage('Compile') { 
             steps { 
                sh 'mvn clean compile'
@@ -20,5 +25,11 @@ pipeline {
                 }
             }
         }
+	stage('Commit dependency updates') {
+		steps {
+			sh 'mvn versions:commit'
+			sh 'mvn -Dmessage="updateing dependencies" scm:checkin'
+		}
+	}
     }
 }
