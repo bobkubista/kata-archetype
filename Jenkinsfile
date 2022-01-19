@@ -7,7 +7,7 @@ pipeline {
     stages { 
 	stage('Update Dependencies') {
 	    steps {
-		sh 'mvn versions:use-latest-verions processParent=true'
+		sh 'mvn versions:use-latest-versions processParent=true'
             }
     	}
         stage('Compile') { 
