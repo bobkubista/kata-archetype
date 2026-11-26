@@ -8,7 +8,7 @@ Usage: the archetype is not on Maven Central, so install it locally first (`mvn 
 mvn archetype:generate -DarchetypeGroupId=com.bobkubista -DarchetypeArtifactId=kata-archetype -DarchetypeVersion=0.0.1-SNAPSHOT
 ```
 
-A generated kata gets a `pom.xml` (Java 25, JUnit, JaCoCo, Spotless with `formatter.xml`, SonarQube scanner), a `Jenkinsfile` for the kvm-server Jenkins and a `.gitignore`.
+A generated kata gets a `pom.xml` (Java 25, JUnit, JaCoCo, Spotless with `formatter.xml`, SonarQube scanner), a `Jenkinsfile` for the kvm-server Jenkins (SonarQube analysis and quality gate on master and on pull requests, kvm-server ADR-0059) and a `.gitignore`.
 
 ## Build
 

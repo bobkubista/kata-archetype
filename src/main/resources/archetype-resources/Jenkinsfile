@@ -29,26 +29,25 @@ pipeline {
     timeout(time: 30, unit: 'MINUTES')
   }
   stages {
-    stage('Build and test') {
-      when { not { branch 'master' } }
-      steps {
-        sh 'mvn -B -ntp verify'
-      }
-    }
-    // SonarQube Community has no branch analysis: only master is analysed,
-    // so a feature branch never overwrites master's result.
+    // SonarQube analyses master and pull requests. A PR is its own analysis (community branch plugin,
+    // kvm-server ADR-0059), so it never overwrites master's result; plain branch builds are not analysed.
     stage('Build, test, analyse') {
-      when { branch 'master' }
       steps {
-        withSonarQubeEnv('SonarQube') {
-          // the checkout belongs to the jnlp user; let git (Sonar blame) read it as root
-          sh 'git config --global --add safe.directory "$WORKSPACE"'
-          sh 'mvn -B -ntp verify sonar:sonar'
+        script {
+          if (env.BRANCH_NAME == 'master' || env.CHANGE_ID) {
+            withSonarQubeEnv('SonarQube') {
+              // the checkout belongs to the jnlp user; let git (Sonar blame) read it as root
+              sh 'git config --global --add safe.directory "$WORKSPACE"'
+              sh 'mvn -B -ntp verify sonar:sonar' + sonarPullRequestArgs()
+            }
+          } else {
+            sh 'mvn -B -ntp verify'
+          }
         }
       }
     }
     stage('Quality gate') {
-      when { branch 'master' }
+      when { anyOf { branch 'master'; changeRequest() } }
       steps {
         timeout(time: 10, unit: 'MINUTES') {
           waitForQualityGate abortPipeline: true   // SonarQube calls back via its webhook
@@ -56,4 +55,12 @@ pipeline {
       }
     }
   }
+}
+
+// PR analysis parameters; single quotes: the shell expands the variables, not Groovy
+def sonarPullRequestArgs() {
+  if (!env.CHANGE_ID) {
+    return ''
+  }
+  return ' -Dsonar.pullrequest.key="$CHANGE_ID" -Dsonar.pullrequest.branch="$CHANGE_BRANCH" -Dsonar.pullrequest.base="$CHANGE_TARGET"'
 }
